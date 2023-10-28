@@ -1,82 +1,48 @@
 package com.example.callingapp
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.hbb20.CountryCodePicker
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
-    var countryCodePicker: CountryCodePicker? = null
-    var phone: EditText? = null
-    var message:EditText? = null
-    var sendbtn: Button? = null
-    var messagestr: String? = null
-    var phonestr:kotlin.String? = ""
-
+    var phoneNo: EditText? = null
+    var callbtn: FloatingActionButton? = null
+    var PERMISSION_CODE = 100
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        countryCodePicker = findViewById(R.id.countryCode);
-        phone = findViewById(R.id.phoneNo);
-        message = findViewById(R.id.message);
-        sendbtn = findViewById(R.id.sendbtn)
+        phoneNo = findViewById(R.id.editTextPhone);
+        callbtn = findViewById(R.id.callbtn);
 
-        sendbtn!!.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                messagestr = message!!.getText().toString()
-
-                phonestr = phone!!.getText().toString()
-                if (!messagestr!!.isEmpty() && !phonestr!!.isEmpty()) {
-                    countryCodePicker!!.registerCarrierNumberEditText(phone)
-                    phonestr = countryCodePicker!!.getFullNumber()
-                    if (isWhatappInstalled) {
-                        val i = Intent(
-                            Intent.ACTION_VIEW, Uri.parse(
-                                "https://api.whatsapp.com/send?phone=" + phonestr +
-                                        "&text=" + messagestr
-                            )
-                        )
-                        startActivity(i)
-                        message!!.setText("")
-                        phone!!.setText("")
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Whatsapp is not installed",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } else {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Please fill in the Phone no. and message it can't be empty",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
+        if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CALL_PHONE
+        ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this@MainActivity,
+                arrayOf<String>(Manifest.permission.CALL_PHONE),
+                MainActivity.Companion.PERMISSION_CODE
+            )
+        }
+        callbtn!!.setOnClickListener(View.OnClickListener {
+            val phoneno = phoneNo!!.getText().toString()
+            val i = Intent(Intent.ACTION_CALL)
+            i.data = Uri.parse("tel:$phoneno")
+            startActivity(i)
         })
     }
 
-    private val isWhatappInstalled: Boolean
-        private get() {
-            val packageManager = packageManager
-            val whatsappInstalled: Boolean
-            whatsappInstalled = try {
-                packageManager.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES)
-                true
-            } catch (e: PackageManager.NameNotFoundException) {
-                false
-            }
-            return whatsappInstalled
-        }
+    companion object {
+        var PERMISSION_CODE = 100
+    }
 }
-
-
